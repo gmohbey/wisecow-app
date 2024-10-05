@@ -18,10 +18,10 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GIT_TOKEN }}" | docker login ghcr.io -u "gmohbey" --password-stdin
+        run: echo "${{ secrets.GIT_TOKEN }}" | docker login ghcr.io -u "${{ gmohbey }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/gmohbey/wisecow-app:latest .
+        run: docker build -t ghcr.io/gmohbey/wisecow-app:latest -f docker/Dockerfile docker/
 
       - name: Push Docker image
         run: docker push ghcr.io/gmohbey/wisecow-app:latest
@@ -45,6 +45,6 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          kubectl set image deployment/wisecow-deployment wisecow-container=ghcr.io/gmohbey/wisecow-app:latest
+          kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
 
 
