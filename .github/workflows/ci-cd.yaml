@@ -44,6 +44,14 @@ jobs:
         run: mkdir -p $HOME/.kube   
 
       - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CA_CERT }}" > $HOME/.kube/ca.crt
+          echo "${{ secrets.KUBE_CLIENT_CERT }}" > $HOME/.kube/client.crt
+          echo "${{ secrets.KUBE_CLIENT_KEY }}" > $HOME/.kube/client.key
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config  
+
+
+      - name: Configure kubectl
         run: echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
 
       - name: Deploy to Kubernetes
