@@ -48,7 +48,6 @@ jobs:
           echo "${{ secrets.KUBE_CA_CERT }}" > $HOME/.kube/ca.crt
           echo "${{ secrets.KUBE_CLIENT_CERT }}" > $HOME/.kube/client.crt
           echo "${{ secrets.KUBE_CLIENT_KEY }}" > $HOME/.kube/client.key
-          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
           echo "apiVersion: v1" > $HOME/.kube/config
           echo "clusters:" >> $HOME/.kube/config
           echo "- cluster:" >> $HOME/.kube/config
