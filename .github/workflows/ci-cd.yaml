@@ -47,7 +47,13 @@ jobs:
 
       - name: Create .kube directory
         run: mkdir -p $HOME/.kube
-
+        
+      - name: Print Kubernetes Secrets (sanitized for logging)
+        run: |
+          echo "KUBE_CA_CERT (first 10 characters): ${KUBE_CA_CERT:0:10}"
+          echo "KUBE_CLIENT_CERT (first 10 characters): ${KUBE_CLIENT_CERT:0:10}"
+          echo "KUBE_CLIENT_KEY (first 10 characters): ${KUBE_CLIENT_KEY:0:10}"
+        
       - name: Configure kubectl
         run: |
           cat <<EOF > $HOME/.kube/config
