@@ -3,7 +3,7 @@ name: CI/CD for Wisecow Application
 on:
   push:
     branches:
-      - main  # Change to your branch name if it is different
+      - main  # Change to your branch name if it's different
 
 jobs:
   build-and-push:
