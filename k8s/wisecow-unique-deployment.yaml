@@ -13,8 +13,9 @@ spec:
         app: wisecow
     spec:
       containers:
-      - name: wisecow-app
+      - name: wisecow-container-unique   # Updated container name
         image: wisecow-app:latest
         ports:
         - containerPort: 4499
         imagePullPolicy: Never
+
