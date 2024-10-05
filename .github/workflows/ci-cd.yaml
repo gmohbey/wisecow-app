@@ -3,7 +3,7 @@ name: CI/CD for Wisecow Application
 on:
   push:
     branches:
-      - master  # Change to your branch name if it's different
+      - main  # Change to your branch name if it's different
 
 jobs:
   build-and-push:
@@ -18,7 +18,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "gmohbey" --password-stdin
 
       - name: Build Docker image
         run: docker build -t ghcr.io/gmohbey/wisecow-app:latest .
@@ -46,4 +46,5 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/wisecow-deployment wisecow-container=ghcr.io/gmohbey/wisecow-app:latest
+
 
