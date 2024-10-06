@@ -3,7 +3,7 @@ name: CI/CD for Wisecow Application
 on:
   push:
     branches:
-      - main  # Update the branch name if necessary
+      - main  # Update the branch name if it's necessary
 
 env:
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
