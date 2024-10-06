@@ -3,7 +3,7 @@ name: CI/CD for Wisecow Application
 on:
   push:
     branches:
-      - main  # Update the branch name if necessary
+      - main
 
 env:
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
@@ -48,17 +48,17 @@ jobs:
       - name: Create .kube directory
         run: mkdir -p $HOME/.kube
 
-      - name: Add Minikube CA certificate
-        run: |
-          echo "${{ secrets.KUBE_CA_CERT }}" > $HOME/.kube/minikube-ca.crt
-
       - name: Print Kubernetes Secrets (sanitized for logging)
         run: |
           echo "KUBE_CA_CERT (first 10 characters): ${KUBE_CA_CERT:0:10}"
           echo "KUBE_CLIENT_CERT (first 10 characters): ${KUBE_CLIENT_CERT:0:10}"
           echo "KUBE_CLIENT_KEY (first 10 characters): ${KUBE_CLIENT_KEY:0:10}"
 
-      - name: Configure kubectl for Minikube
+      - name: Decode and Add Minikube CA certificate
+        run: |
+          echo "${{ secrets.KUBE_CA_CERT }}" | base64 --decode > $HOME/.kube/minikube-ca.crt
+
+      - name: Configure kubectl
         run: |
           cat <<EOF > $HOME/.kube/config
           apiVersion: v1
@@ -84,6 +84,3 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
-
-
-
