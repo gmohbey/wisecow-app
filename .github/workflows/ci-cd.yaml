@@ -66,23 +66,23 @@ jobs:
           cat <<EOF > $HOME/.kube/config
           apiVersion: v1
           clusters:
-          - cluster:
-              certificate-authority-data: "${{ env.KUBE_CA_CERT }}"
-              server: https://192.168.49.2:8443  # Minikube's default IP
-            name: minikube
-          contexts:
-          - context:
-              cluster: minikube
-              user: minikube-user
-            name: minikube-context
-          current-context: minikube-context
-          kind: Config
-          users:
-          - name: minikube-user
-            user:
-              client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
-              client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
-          EOF
+            - cluster:
+                certificate-authority: $HOME/.kube/minikube-ca.crt
+                server: https://192.168.49.2:8443
+              name: minikube
+            contexts:
+            - context:
+                cluster: minikube
+        user: minikube-user
+      name: minikube-context
+    current-context: minikube-context
+    kind: Config
+    users:
+    - name: minikube-user
+      user:
+        client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
+        client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
+    EOF
 
       - name: Apply Kubernetes Deployment and Service
         run: |
