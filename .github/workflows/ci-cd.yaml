@@ -56,6 +56,11 @@ jobs:
       - name: Create .kube directory
         run: mkdir -p $HOME/.kube
         
+      - name: Add Minikube CA certificate
+        run: |
+          echo "${{ secrets.MINIKUBE_CA_CERT }}" > $HOME/.kube/minikube-ca.crt
+        
+        
       - name: Configure kubectl for Minikube
         run: |
           cat <<EOF > $HOME/.kube/config
