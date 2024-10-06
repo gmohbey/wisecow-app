@@ -1,4 +1,4 @@
-name: CI/CD for Wisecow Application on Minikube
+name: CI/CD for Wisecow Application
 
 on:
   push:
@@ -9,7 +9,6 @@ env:
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
   KUBE_CLIENT_KEY: ${{ secrets.KUBE_CLIENT_KEY }}
   KUBE_CA_CERT: ${{ secrets.KUBE_CA_CERT }}
-  MINIKUBE_IP: 192.168.49.2  # The default IP for Minikube, update if different
 
 jobs:
   build-and-push:
@@ -33,20 +32,13 @@ jobs:
         run: docker push ghcr.io/gmohbey/wisecow-app:latest
 
   deploy:
-    name: Deploy to Minikube
+    name: Deploy to Kubernetes
     runs-on: ubuntu-latest
     needs: build-and-push
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Minikube
-        run: |
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo install minikube-linux-amd64 /usr/local/bin/minikube
-          minikube start --driver=docker
-          minikube tunnel &
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -55,44 +47,43 @@ jobs:
 
       - name: Create .kube directory
         run: mkdir -p $HOME/.kube
-        
+
       - name: Add Minikube CA certificate
         run: |
-          echo "${{ secrets.MINIKUBE_CA_CERT }}" > $HOME/.kube/minikube-ca.crt
-        
-        
+          echo "${{ secrets.KUBE_CA_CERT }}" > $HOME/.kube/minikube-ca.crt
+
+      - name: Print Kubernetes Secrets (sanitized for logging)
+        run: |
+          echo "KUBE_CA_CERT (first 10 characters): ${KUBE_CA_CERT:0:10}"
+          echo "KUBE_CLIENT_CERT (first 10 characters): ${KUBE_CLIENT_CERT:0:10}"
+          echo "KUBE_CLIENT_KEY (first 10 characters): ${KUBE_CLIENT_KEY:0:10}"
+
       - name: Configure kubectl for Minikube
         run: |
           cat <<EOF > $HOME/.kube/config
           apiVersion: v1
           clusters:
-            - cluster:
-                certificate-authority: $HOME/.kube/minikube-ca.crt
-                server: https://192.168.49.2:8443
-              name: minikube
-            contexts:
-            - context:
-                cluster: minikube
-        user: minikube-user
-      name: minikube-context
-    current-context: minikube-context
-    kind: Config
-    users:
-    - name: minikube-user
-      user:
-        client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
-        client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
-    EOF
+          - cluster:
+              certificate-authority: $HOME/.kube/minikube-ca.crt
+              server: https://192.168.49.2:8443
+            name: minikube
+          contexts:
+          - context:
+              cluster: minikube
+              user: minikube-user
+            name: minikube-context
+          current-context: minikube-context
+          kind: Config
+          users:
+          - name: minikube-user
+            user:
+              client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
+              client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
+          EOF
 
-      - name: Apply Kubernetes Deployment and Service
-        run: |
-          kubectl apply --validate=false -f k8s/wisecow-unique-deployment.yaml
-          kubectl apply --validate=false -f k8s/wisecow-unique-service.yaml
-
-      - name: Update Deployment Image
+      - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
-
 
 
 
