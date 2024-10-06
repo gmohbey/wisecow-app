@@ -57,24 +57,22 @@ jobs:
           cat <<EOF > $HOME/.kube/config
 apiVersion: v1
 clusters:
-  - cluster:
-      certificate-authority: $HOME/.kube/minikube-ca.crt
-      server: https://192.168.49.2:8443
-    name: minikube
+- cluster:
+    certificate-authority: $HOME/.kube/minikube-ca.crt
+    server: https://192.168.49.2:8443
+  name: minikube
 contexts:
-  - context:
-      cluster: minikube
-      user: minikube-user
-    name: minikube-context
+- context:
+    cluster: minikube
+    user: minikube-user
+  name: minikube-context
 current-context: minikube-context
 kind: Config
 users:
-  - name: minikube-user
-    user:
-      client-certificate-data: |
-        ${env.KUBE_CLIENT_CERT}
-      client-key-data: |
-        ${env.KUBE_CLIENT_KEY}
+- name: minikube-user
+  user:
+    client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
+    client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
 EOF
 
       - name: Deploy to Kubernetes
