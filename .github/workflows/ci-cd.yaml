@@ -71,8 +71,10 @@ kind: Config
 users:
 - name: minikube-user
   user:
-    client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
-    client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
+    client-certificate-data: |
+      ${env.KUBE_CLIENT_CERT}
+    client-key-data: |
+      ${env.KUBE_CLIENT_KEY}
 EOF
 
       - name: Deploy to Kubernetes
