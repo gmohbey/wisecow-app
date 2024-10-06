@@ -81,8 +81,8 @@ jobs:
 
       - name: Apply Kubernetes Deployment and Service
         run: |
-          kubectl apply -f k8s/wisecow-unique-devlopment.yml
-          kubectl apply -f k8s/wisecow-unique-service.yml
+          kubectl apply -f k8s/wisecow-unique-devlopment.yaml
+          kubectl apply -f k8s/wisecow-unique-service.yaml
 
       - name: Update Deployment Image
         run: |
