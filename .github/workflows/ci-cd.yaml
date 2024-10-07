@@ -1,4 +1,4 @@
-name: Minimal CI/CD Test
+name: CI/CD for Wisecow Application
 
 on:
   push:
@@ -7,12 +7,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  minimal-test:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
         run: |
@@ -26,8 +29,8 @@ jobs:
         run: |
           docker push ghcr.io/gmohbey/wisecow-app:latest
 
-  validate-kubectl:
-    needs: minimal-test
+  deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -45,24 +48,28 @@ jobs:
       - name: Configure kubectl
         run: |
           echo "${{ secrets.KUBE_CA_CERT }}" | base64 --decode > $HOME/.kube/minikube-ca.crt
-          echo "apiVersion: v1" > $HOME/.kube/config
-          echo "clusters:" >> $HOME/.kube/config
-          echo "- cluster:" >> $HOME/.kube/config
-          echo "    certificate-authority: $HOME/.kube/minikube-ca.crt" >> $HOME/.kube/config
-          echo "    server: https://192.168.49.2:8443" >> $HOME/.kube/config
-          echo "  name: minikube" >> $HOME/.kube/config
-          echo "contexts:" >> $HOME/.kube/config
-          echo "- context:" >> $HOME/.kube/config
-          echo "    cluster: minikube" >> $HOME/.kube/config
-          echo "    user: minikube-user" >> $HOME/.kube/config
-          echo "  name: minikube-context" >> $HOME/.kube/config
-          echo "current-context: minikube-context" >> $HOME/.kube/config
-          echo "kind: Config" >> $HOME/.kube/config
-          echo "users:" >> $HOME/.kube/config
-          echo "- name: minikube-user" >> $HOME/.kube/config
-          echo "  user:" >> $HOME/.kube/config
-          echo "    client-certificate: ${{ secrets.KUBE_CLIENT_CERT }}" >> $HOME/.kube/config
-          echo "    client-key: ${{ secrets.KUBE_CLIENT_KEY }}" >> $HOME/.kube/config
+          cat <<EOF > $HOME/.kube/config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: $HOME/.kube/minikube-ca.crt
+    server: https://192.168.49.2:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    user: minikube-user
+  name: minikube-context
+current-context: minikube-context
+kind: Config
+users:
+- name: minikube-user
+  user:
+    client-certificate-data: |
+$(echo "${{ secrets.KUBE_CLIENT_CERT }}" | base64 --decode)
+    client-key-data: |
+$(echo "${{ secrets.KUBE_CLIENT_KEY }}" | base64 --decode)
+EOF
 
-      - name: Validate kubectl configuration
-        run: kubectl config view
+      - name: Deploy to Kubernetes
+        run: kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
