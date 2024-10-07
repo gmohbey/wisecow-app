@@ -46,26 +46,32 @@ jobs:
         run: mkdir -p $HOME/.kube
 
       - name: Configure kubectl
+        env:
+          KUBE_CA_CERT: ${{ secrets.KUBE_CA_CERT }}
+          KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
+          KUBE_CLIENT_KEY: ${{ secrets.KUBE_CLIENT_KEY }}
         run: |
-          echo "${{ secrets.KUBE_CA_CERT }}" | base64 --decode > $HOME/.kube/minikube-ca.crt
-          echo "apiVersion: v1" > $HOME/.kube/config
-          echo "clusters:" >> $HOME/.kube/config
-          echo "- cluster:" >> $HOME/.kube/config
-          echo "    certificate-authority: $HOME/.kube/minikube-ca.crt" >> $HOME/.kube/config
-          echo "    server: https://192.168.49.2:8443" >> $HOME/.kube/config
-          echo "  name: minikube" >> $HOME/.kube/config
-          echo "contexts:" >> $HOME/.kube/config
-          echo "- context:" >> $HOME/.kube/config
-          echo "    cluster: minikube" >> $HOME/.kube/config
-          echo "    user: minikube-user" >> $HOME/.kube/config
-          echo "  name: minikube-context" >> $HOME/.kube/config
-          echo "current-context: minikube-context" >> $HOME/.kube/config
-          echo "kind: Config" >> $HOME/.kube/config
-          echo "users:" >> $HOME/.kube/config
-          echo "- name: minikube-user" >> $HOME/.kube/config
-          echo "  user:" >> $HOME/.kube/config
-          echo "    client-certificate-data: ${secrets.KUBE_CLIENT_CERT}" >> $HOME/.kube/config
-          echo "    client-key-data: ${secrets.KUBE_CLIENT_KEY}" >> $HOME/.kube/config
+          echo "$KUBE_CA_CERT" | base64 --decode > $HOME/.kube/minikube-ca.crt
+          cat <<EOF > $HOME/.kube/config
+          apiVersion: v1
+          clusters:
+          - cluster:
+              certificate-authority: $HOME/.kube/minikube-ca.crt
+              server: https://192.168.49.2:8443
+            name: minikube
+          contexts:
+          - context:
+              cluster: minikube
+              user: minikube-user
+            name: minikube-context
+          current-context: minikube-context
+          kind: Config
+          users:
+          - name: minikube-user
+            user:
+              client-certificate-data: $KUBE_CLIENT_CERT
+              client-key-data: $KUBE_CLIENT_KEY
+          EOF
 
       - name: Deploy to Kubernetes
         run: kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
