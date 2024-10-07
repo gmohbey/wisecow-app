@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main  # Update the branch name if necessary
-  workflow_dispatch:  # Enables manual triggering
 
 env:
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
@@ -58,25 +57,28 @@ jobs:
       - name: Configure kubectl
         run: |
           cat <<EOF > $HOME/.kube/config
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: "${{ env.KUBE_CA_CERT }}"
-    server: https://192.168.49.2:8443
-  name: minikube
-contexts:
-- context:
-    cluster: minikube
-    user: minikube-user
-  name: minikube-context
-current-context: minikube-context
-kind: Config
-users:
-- name: minikube-user
-  user:
-    client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
-    client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
-EOF
+          apiVersion: v1
+          clusters:
+          - cluster:
+              certificate-authority-data: "${{ env.KUBE_CA_CERT }}"
+              server: https://192.168.49.2:8443
+            name: minikube
+          contexts:
+          - context:
+              cluster: minikube
+              user: minikube-user
+            name: minikube-context
+          current-context: minikube-context
+          kind: Config
+          users:
+          - name: minikube-user
+            user:
+              client-certificate-data: "${{ env.KUBE_CLIENT_CERT }}"
+              client-key-data: "${{ env.KUBE_CLIENT_KEY }}"
+          EOF
 
       - name: Deploy to Kubernetes
-        run: kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
+        run: |
+          kubectl set image deployment/wisecow-unique-deployment wisecow-container-unique=ghcr.io/gmohbey/wisecow-app:latest
+
+
