@@ -57,8 +57,7 @@ jobs:
 
       - name: Configure kubectl using secrets
         run: |
-          cat <<EOT > $HOME/.kube/config
-apiVersion: v1
+          echo "apiVersion: v1
 clusters:
   - cluster:
       certificate-authority: $HOME/.kube/minikube-ca.crt
@@ -75,8 +74,7 @@ users:
   - name: minikube-user
     user:
       client-certificate-data: '${{ env.KUBE_CLIENT_CERT }}'
-      client-key-data: '${{ env.KUBE_CLIENT_KEY }}'
-EOT
+      client-key-data: '${{ env.KUBE_CLIENT_KEY }}'" > $HOME/.kube/config
 
       - name: Deploy to Kubernetes
         run: |
