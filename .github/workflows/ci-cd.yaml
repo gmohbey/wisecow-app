@@ -44,40 +44,15 @@ jobs:
           chmod +x ./kind
           sudo mv ./kind /usr/local/bin/kind
 
-      # Create .kube directory
-      - name: Create .kube directory
-        run: mkdir -p $HOME/.kube
+      # Create Kind cluster
+      - name: Create Kind cluster
+        run: kind create cluster
 
-      # Configure kubectl
-      - name: Configure kubectl
-        env:
-          KUBE_CA_CERT: ${{ secrets.KUBE_CA_CERT }}
-          KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
-          KUBE_CLIENT_KEY: ${{ secrets.KUBE_CLIENT_KEY }}
-        run: |
-          echo "$KUBE_CA_CERT" | base64 --decode > $HOME/.kube/minikube-ca.crt
-          cat <<EOF > $HOME/.kube/config
-          apiVersion: v1
-          clusters:
-          - cluster:
-              certificate-authority: $HOME/.kube/minikube-ca.crt
-              server: https://192.168.49.2:8443
-            name: minikube
-          contexts:
-          - context:
-              cluster: minikube
-              user: minikube-user
-            name: minikube-context
-          current-context: minikube-context
-          kind: Config
-          users:
-          - name: minikube-user
-            user:
-              client-certificate-data: $KUBE_CLIENT_CERT
-              client-key-data: $KUBE_CLIENT_KEY
-          EOF
+      # Check cluster info
+      - name: Check Kubernetes cluster info
+        run: kubectl cluster-info --context kind-kind
 
-      # Deploy to Kubernetes
+      # Deploy to Kind cluster
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f - --validate=false <<EOF
