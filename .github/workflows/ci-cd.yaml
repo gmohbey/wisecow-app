@@ -139,9 +139,13 @@ jobs:
                         number: 443
           EOF
 
-            # Test DNS resolution without TTY
+      # Create a service account for DNS testing
+      - name: Create Service Account
+        run: |
+          kubectl create serviceaccount dnsutils
+
+      # Optionally, test DNS resolution within the cluster
       - name: Test DNS Resolution
         run: |
-          kubectl run dnsutils --image=busybox --restart=Never --command -- nslookup kubernetes.default || true
+          kubectl run dnsutils --image=busybox --restart=Never --serviceaccount dnsutils --command -- nslookup kubernetes.default || true
           kubectl logs dnsutils || true
-
