@@ -111,7 +111,7 @@ jobs:
             type: NodePort  # Correct type is 'NodePort'
           EOF
 
-      # Optionally, create an Ingress for TLS termination
+      # Create Ingress for TLS termination
       - name: Create Ingress for TLS
         run: |
           kubectl apply -f - --validate=false <<EOF
@@ -138,3 +138,8 @@ jobs:
                       port:
                         number: 443
           EOF
+
+      # Optionally, test DNS resolution within the cluster
+      - name: Test DNS Resolution
+        run: |
+          kubectl run -i --tty dnsutils --image=busybox --restart=Never -- nslookup kubernetes.default
