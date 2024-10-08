@@ -111,7 +111,7 @@ jobs:
             type: NodePort  # Correct type is 'NodePort'
           EOF
 
-      # Create Ingress for TLS termination
+      # Optionally, create an Ingress for TLS termination
       - name: Create Ingress for TLS
         run: |
           kubectl apply -f - --validate=false <<EOF
@@ -138,33 +138,3 @@ jobs:
                       port:
                         number: 443
           EOF
-
-      # Create a service account for DNS testing
-      - name: Create Service Account
-        run: |
-          kubectl create serviceaccount dnsutils
-
-      # Create Pod manifest for DNS testing
-      - name: Create Pod for DNS Testing
-        run: |
-          kubectl apply -f - <<EOF
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            name: dnsutils
-            namespace: default
-            labels:
-              app: dnsutils
-          spec:
-            serviceAccountName: dnsutils
-            containers:
-            - name: dnsutils
-              image: busybox
-              command: ["nslookup", "kubernetes.default"]
-          EOF
-
-      # Wait for the pod to complete
-      - name: Wait for DNS Pod to complete
-        run: |
-          kubectl wait --for=condition=complete --timeout=60s pod/dnsutils || true
-          kubectl logs dnsutils || true
