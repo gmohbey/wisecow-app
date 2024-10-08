@@ -52,6 +52,16 @@ jobs:
       - name: Check Kubernetes cluster info
         run: kubectl cluster-info --context kind-kind
 
+      # Create TLS Secret
+      - name: Create TLS Secret
+        env:
+          TLS_CERT: ${{ secrets.TLS_CERT }}
+          TLS_KEY: ${{ secrets.TLS_KEY }}
+        run: |
+          echo "$TLS_CERT" | base64 --decode > tls.crt
+          echo "$TLS_KEY" | base64 --decode > tls.key
+          kubectl create secret tls wisecow-tls --cert=tls.crt --key=tls.key
+
       # Deploy to Kind cluster
       - name: Deploy to Kubernetes
         run: |
@@ -93,4 +103,50 @@ jobs:
                 port: 80
                 targetPort: 4499  # Replace with the correct port your app listens on
             type: LoadBalancer  # Or 'NodePort' based on your requirements
+          EOF
+
+# Expose the Wisecow app as a Service with TLS
+      - name: Expose Wisecow App as a Service
+        run: |
+          kubectl apply -f - --validate=false <<EOF
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: wisecow-service
+          spec:
+            selector:
+              app: wisecow
+            ports:
+              - protocol: TCP
+                port: 443  # Expose on HTTPS port
+                targetPort: 4499  # Adjust to the application's listening port
+            type: LoadBalancer  # Or 'NodePort' based on your requirements
+          EOF
+  
+      # Optionally, create an Ingress for TLS termination
+      - name: Create Ingress for TLS
+        run: |
+          kubectl apply -f - --validate=false <<EOF
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: wisecow-ingress
+            annotations:
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          spec:
+            tls:
+            - hosts:
+              - wisecow-app.latest  # Replace with your actual domain
+              secretName: wisecow-tls
+            rules:
+            - host: wisecow-app  # Replace with your actual domain
+              http:
+                paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: wisecow-service
+                      port:
+                        number: 443
           EOF
