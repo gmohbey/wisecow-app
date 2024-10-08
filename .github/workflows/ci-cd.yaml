@@ -76,3 +76,21 @@ jobs:
                 imagePullSecrets:
                 - name: ghcr-secret
           EOF
+
+      # Expose the Wisecow app as a Service
+      - name: Expose Wisecow App as a Service
+        run: |
+          kubectl apply -f - --validate=false <<EOF
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: wisecow-service
+          spec:
+            selector:
+              app: wisecow
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 4499  # Replace with the correct port your app listens on
+            type: LoadBalancer  # Or 'NodePort' based on your requirements
+          EOF
