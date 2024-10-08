@@ -58,7 +58,7 @@ jobs:
           openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
           -keyout tls.key \
           -out tls.crt \
-          -subj "/CN=www.wisecow-app.com/O=wisecow-app Inc./C=US"  # Replace with your actual domain
+          -subj "/CN=www.wisecow-app.com/O=wisecow-app Inc./C=IN"  # Replace with your actual domain
 
       # Create TLS Secret
       - name: Create TLS Secret
@@ -107,7 +107,8 @@ jobs:
               - protocol: TCP
                 port: 443  # Expose on HTTPS port
                 targetPort: 4499  # Adjust to the application's listening port
-            type: LoadBalancer  # Or 'NodePort' based on your requirements
+                nodePort:30000
+            type: Nodeport  # Or 'NodePort' based on your requirements
           EOF
 
       # Optionally, create an Ingress for TLS termination
@@ -126,7 +127,7 @@ jobs:
               - your.domain.com  # Replace with your actual domain
               secretName: wisecow-tls
             rules:
-            - host: your.domain.com  # Replace with your actual domain
+            - host: www.wisecow-app.com  # Replace with your actual domain
               http:
                 paths:
                 - path: /
