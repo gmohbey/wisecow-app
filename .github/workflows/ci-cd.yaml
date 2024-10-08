@@ -144,8 +144,27 @@ jobs:
         run: |
           kubectl create serviceaccount dnsutils
 
-      # Optionally, test DNS resolution within the cluster
-      - name: Test DNS Resolution
+      # Create Pod manifest for DNS testing
+      - name: Create Pod for DNS Testing
         run: |
-          kubectl run dnsutils --image=busybox --restart=Never --serviceaccount dnsutils --command -- nslookup kubernetes.default || true
+          kubectl apply -f - <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: dnsutils
+            namespace: default
+            labels:
+              app: dnsutils
+          spec:
+            serviceAccountName: dnsutils
+            containers:
+            - name: dnsutils
+              image: busybox
+              command: ["nslookup", "kubernetes.default"]
+          EOF
+
+      # Wait for the pod to complete
+      - name: Wait for DNS Pod to complete
+        run: |
+          kubectl wait --for=condition=complete --timeout=60s pod/dnsutils || true
           kubectl logs dnsutils || true
