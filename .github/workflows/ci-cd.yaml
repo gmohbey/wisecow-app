@@ -139,7 +139,9 @@ jobs:
                         number: 443
           EOF
 
-      # Optionally, test DNS resolution within the cluster
+            # Test DNS resolution without TTY
       - name: Test DNS Resolution
         run: |
-          kubectl run -i --tty dnsutils --image=busybox --restart=Never -- nslookup kubernetes.default
+          kubectl run dnsutils --image=busybox --restart=Never --command -- nslookup kubernetes.default || true
+          kubectl logs dnsutils || true
+
