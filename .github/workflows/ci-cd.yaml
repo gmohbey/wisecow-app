@@ -107,8 +107,8 @@ jobs:
               - protocol: TCP
                 port: 443  # Expose on HTTPS port
                 targetPort: 4499  # Adjust to the application's listening port
-                nodePort:30000
-            type: Nodeport  # Or 'NodePort' based on your requirements
+                nodePort: 30000
+            type: NodePort  # Correct type is 'NodePort'
           EOF
 
       # Optionally, create an Ingress for TLS termination
@@ -124,7 +124,7 @@ jobs:
           spec:
             tls:
             - hosts:
-              - your.domain.com  # Replace with your actual domain
+              - www.wisecow-app.com  # Replace with your actual domain
               secretName: wisecow-tls
             rules:
             - host: www.wisecow-app.com  # Replace with your actual domain
